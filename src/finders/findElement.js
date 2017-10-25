@@ -15,20 +15,29 @@ export default function (selector, multiple) {
         var currentElement = document;
         for (var i = 0; i < selectors.length; i++) {
             // If the element is a shadow host, go into the shadowRoot
-            if (i > 0 && currentElement.shadowRoot) {
+            let testUseShadowDom = [];
+            if (selectors[i - 1]) {
+                testUseShadowDom = selectors[i - 1].split(':notShadowRoot');
+            }
+            if (i > 0 && currentElement.shadowRoot && testUseShadowDom.length < 2) {
                 currentElement = currentElement.shadowRoot;
             }
 
             if (i === selectors.length - 1) {
                 // Final selector part. If multiple=true, try to find multiple elements
                 if (multiple) {
-                    currentElement = currentElement.querySelectorAll(selectors[selectors.length - 1]);
+                    currentElement = currentElement.querySelectorAll(selectors[i]);
                 } else {
-                    currentElement = currentElement.querySelector(selectors[selectors.length - 1]);
+                    currentElement = currentElement.querySelector(selectors[i]);
                 }
                 break;
             } else {
+                const rewriteSelector = selectors[i].split(':notShadowRoot');
+                if (rewriteSelector.length < 2) {
                 currentElement = currentElement.querySelector(selectors[i]);
+                } else {
+                currentElement = currentElement.querySelector(rewriteSelector[0]);
+                }
             }
 
             if (!currentElement) {
